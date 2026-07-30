@@ -50,7 +50,7 @@ def main():
                             position = p["placement"]
                             units_info = p["units"]
                             print(
-                                f"Player {i}: {puuid_player} | Position: {position} | PUUID: {puuid_player}..."
+                                f"Player {i} | Position: {position} | PUUID: {puuid_player}..."
                             )
                             print("Final Team:")
 
