@@ -37,6 +37,19 @@ def main():
             else:
                 print(f"Error: Game dont found: {response_matches.status_code}")
 
+            match_id = list_ids[0]
+            url_matches_info = (
+                f"https://americas.api.riotgames.com/tft/match/v1/matches/{match_id}"
+            )
+
+            response_matches_info = requests.get(url_matches_info, headers=headers)
+
+            if response_matches_info == 200:
+                matches_info = response_matches_info.json()
+
+                for p in matches_info["info"]["participants"]:
+                    print(f"Participant: {p['puuid']} | Position: {p['placement']}")
+
         else:
             print(f"Error:! {response.status_code}: {response.text}")
     except Exception as e:
