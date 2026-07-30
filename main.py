@@ -49,6 +49,7 @@ def main():
                             puuid_player = p["puuid"]
                             position = p["placement"]
                             units_info = p["units"]
+
                             print(
                                 f"Player {i} | Position: {position} | PUUID: {puuid_player}..."
                             )
@@ -57,8 +58,14 @@ def main():
                             for uni in units_info:
                                 name = uni["character_id"].replace("TFT17_", "")
                                 stars = uni["tier"]
+                                text_itens = ", ".join(uni["itemNames"])
+                                item_name = text_itens.replace("TFT_Item_", "").replace(
+                                    "TFT17_Item_", ""
+                                )
 
-                                print(f" - {name:<12} | Stars: {stars}")
+                                print(
+                                    f" - {name:<12} | Stars: {stars} | Items: {item_name}"
+                                )
 
         else:
             print(f"Error:! {response.status_code}: {response.text}")
