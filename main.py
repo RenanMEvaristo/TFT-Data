@@ -34,21 +34,31 @@ def main():
             if response_matches.status_code == 200:
                 list_ids = response_matches.json()
                 print(f"Games ID's: {list_ids}")
-            else:
-                print(f"Error: Game dont found: {response_matches.status_code}")
+                if list_ids:
+                    match_id = list_ids[0]
+                    url_matches_info = f"https://americas.api.riotgames.com/tft/match/v1/matches/{match_id}"
 
-            match_id = list_ids[0]
-            url_matches_info = (
-                f"https://americas.api.riotgames.com/tft/match/v1/matches/{match_id}"
-            )
+                    response_info = requests.get(url_matches_info, headers=headers)
 
-            response_matches_info = requests.get(url_matches_info, headers=headers)
+                    if response_info.status_code == 200:
+                        matches_info = response_info.json()
 
-            if response_matches_info == 200:
-                matches_info = response_matches_info.json()
+                        for i, p in enumerate(
+                            matches_info["info"]["participants"], start=1
+                        ):
+                            puuid_player = p["puuid"]
+                            position = p["placement"]
+                            units_info = p["units"]
+                            print(
+                                f"Player {i}: {puuid_player} | Position: {position} | PUUID: {puuid_player}..."
+                            )
+                            print("Final Team:")
 
-                for p in matches_info["info"]["participants"]:
-                    print(f"Participant: {p['puuid']} | Position: {p['placement']}")
+                            for uni in units_info:
+                                name = uni["character_id"].replace("TFT17_", "")
+                                stars = uni["tier"]
+
+                                print(f" - {name:<12} | Stars: {stars}")
 
         else:
             print(f"Error:! {response.status_code}: {response.text}")
