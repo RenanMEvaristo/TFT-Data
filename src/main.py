@@ -44,6 +44,7 @@ def main() -> None:
         if response.status_code == HTTP_OK:
             data = response.json()
             my_puuid = data["puuid"]
+
             print(f"Sucess! Your PUUID is: {my_puuid}")
 
             url_matches = f"https://americas.api.riotgames.com/tft/match/v1/matches/by-puuid/{my_puuid}/ids?count=10"

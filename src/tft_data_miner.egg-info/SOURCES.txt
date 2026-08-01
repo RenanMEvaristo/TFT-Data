@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/chalenger.py
+src/main.py
+src/test_chalenger.py
+src/tft_data_miner.egg-info/PKG-INFO
+src/tft_data_miner.egg-info/SOURCES.txt
+src/tft_data_miner.egg-info/dependency_links.txt
+src/tft_data_miner.egg-info/requires.txt
+src/tft_data_miner.egg-info/top_level.txt
