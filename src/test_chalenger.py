@@ -21,3 +21,6 @@ def test_key_validation_failure() -> None:
     with patch("os.getenv", return_value=None), pytest.raises(SystemExit) as e:
         key_validation()
     assert e.value.code == 1
+
+
+def test_validate_connection_get_response() -> None: ...
