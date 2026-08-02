@@ -1,12 +1,10 @@
 # Copyright (c) 2024 Renan Evaristo
 # ruff: noqa: S101
 
-from unittest.mock import patch
-
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-
-from chalenger import key_validation
+from unittest.mock import patch, MagicMock
+from src.chalenger import key_validation, transfer_data_to_csv, validate_connection_get_response
 
 
 def test_key_validation_success(monkeypatch: MonkeyPatch) -> None:
@@ -21,6 +19,3 @@ def test_key_validation_failure() -> None:
     with patch("os.getenv", return_value=None), pytest.raises(SystemExit) as e:
         key_validation()
     assert e.value.code == 1
-
-
-def test_validate_connection_get_response() -> None: ...
