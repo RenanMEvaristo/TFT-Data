@@ -1,10 +1,12 @@
 # Copyright (c) 2024 Renan Evaristo
 # ruff: noqa: S101
 
+from unittest.mock import patch
+
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from unittest.mock import patch, MagicMock
-from src.chalenger import key_validation, transfer_data_to_csv, validate_connection_get_response
+
+from src.chalenger import key_validation
 
 
 def test_key_validation_success(monkeypatch: MonkeyPatch) -> None:

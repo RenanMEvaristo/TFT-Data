@@ -1,0 +1,46 @@
+# Copyright (c) 2024 Renan Evaristo
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_camel
+
+
+class ChallengerPlayer(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    summoner_id: str
+    puuid: str
+    league_points: int
+    wins: int
+    losses: int
+
+
+class Unit(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    character_id: str
+    item_names: list[str]
+    tier: int
+    rarity: int
+
+
+class Participant(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    puuid: str
+    placement: int
+    level: int
+    gold_left: int
+    last_round: int
+    units: list[Unit]
+
+
+class ChallengerRanking(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    tier: str
+    entries: list[ChallengerPlayer]
+
+
+class MatchInfo(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    game_length: float

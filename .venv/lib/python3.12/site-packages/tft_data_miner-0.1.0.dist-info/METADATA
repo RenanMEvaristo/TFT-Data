@@ -9,3 +9,4 @@ Requires-Dist: python-dotenv
 Requires-Dist: pandas
 Requires-Dist: openpyxl
 Requires-Dist: pydantic
+Requires-Dist: dotenv>=0.9.9

@@ -2,12 +2,12 @@
 
 import os
 import sys
+import time
 
+import pandas as pd
 import requests
 from dotenv import load_dotenv
 from requests.exceptions import RequestException
-import pandas as pd
-import time
 
 HTTP_OK = 200
 

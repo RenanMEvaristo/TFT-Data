@@ -3,3 +3,4 @@ python-dotenv
 pandas
 openpyxl
 pydantic
+dotenv>=0.9.9
