@@ -14,6 +14,7 @@ from collections import Counter
 
 HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
+TOP_FOUR = 4
 
 
 def load_api_key() -> str:
@@ -80,9 +81,32 @@ def get_match_details(api_key: str, match_id: str, retries: int = 3) -> Match | 
     return None
 
 
-def analyze_meta(matches:list) -> None:
+def analyze_unit_meta(matches: list[Match]) -> None:
 
-    
+    unit_list = []
+    for match in matches:
+        for participant in match.info.participants:
+            print(f"Participant Placement {participant.placement}")
+            placement = participant.placement
+
+            if placement <= TOP_FOUR:
+                for unit in participant.units:
+                    picked_unit = unit.character_id
+                    picked_unit = picked_unit.replace("TFT17_", "")
+
+                    unit_list.append(picked_unit)
+    print(f"{unit_list}")
+
+
+def analyze_trait_meta(matches: list[Match]) -> None:
+    trait_list = []
+    for match in matches:
+        for participant in match.info.participants:
+            for traits in participant.traits:
+                trait_name = traits.name
+                trait_name = trait_name.replace("TFT17_", "")
+                trait_list.append(trait_name)
+    print(f"{trait_list}")
 
 
 def main() -> None:
@@ -117,7 +141,7 @@ def main() -> None:
         total_players = len(match.info.participants)
         print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
 
-    analyze_meta(matches_db)
+    analyze_unit_meta(matches_db)
 
 
 if __name__ == "__main__":

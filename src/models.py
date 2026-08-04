@@ -21,6 +21,13 @@ class Unit(BaseModel):
     rarity: int
 
 
+class Traits(BaseModel):
+    name: str
+    num_units: int
+    tier_current: int
+    tier_total: int
+
+
 class Participant(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
@@ -30,6 +37,7 @@ class Participant(BaseModel):
     gold_left: int
     last_round: int
     units: list[Unit]
+    traits: list[Traits]
 
 
 class ChallengerRanking(BaseModel):
