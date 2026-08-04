@@ -6,7 +6,6 @@ from pydantic.alias_generators import to_camel
 class ChallengerPlayer(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
-    summoner_id: str
     puuid: str
     league_points: int
     wins: int
@@ -44,3 +43,10 @@ class MatchInfo(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
     game_length: float
+    tft_set_number: int
+    participants: list[Participant]
+
+
+class Match(BaseModel):
+    metadata: dict
+    info: MatchInfo

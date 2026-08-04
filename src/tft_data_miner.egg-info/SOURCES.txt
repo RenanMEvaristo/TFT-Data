@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/chalenger.py
 src/main.py
+src/models.py
 src/test_chalenger.py
 src/tft_data_miner.egg-info/PKG-INFO
 src/tft_data_miner.egg-info/SOURCES.txt

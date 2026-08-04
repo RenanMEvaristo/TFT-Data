@@ -1,87 +1,111 @@
 # Copyright (c) 2024 Renan Evaristo
+
 import os
 import sys
+import time
+from pathlib import Path
 
-import requests
+import httpx
+import pandas as pd
 from dotenv import load_dotenv
-from requests.exceptions import RequestException
+from pydantic import ValidationError
+from models import ChallengerRanking, Match
 
 HTTP_OK = 200
+HTTP_TOO_MANY_REQUESTS = 429
 
 
-def key_validation() -> str:
+def load_api_key() -> str:
     load_dotenv()
     api_key = os.getenv("RGAPI_KEY")
-    if api_key is None:
-        print("Error: Key")
+    if not api_key:
+        raise ValueError("Key dont found!")
+    return api_key
 
-        sys.exit(1)
-    else:
-        print("Success!")
-        return api_key
+
+def get_challenger_ranking(api_key: str) -> ChallengerRanking | None:
+    url = "https://br1.api.riotgames.com/tft/league/v1/challenger?queue=RANKED_TFT"
+    headers = {"X-Riot-Token": api_key}
+
+    try:
+        response = httpx.get(url, headers=headers, timeout=10)
+        if response.status_code == HTTP_OK:
+            return ChallengerRanking.model_validate(response.json())
+    except (httpx.RequestError, ValidationError) as e:
+        print(f"Error: Get Rank {e}")
+
+    return None
+
+
+def get_match_ids_by_puuid(api_key: str, puuid: str, count: int = 5) -> list[str]:
+    url = f"https://americas.api.riotgames.com/tft/match/v1/matches/by-puuid/{puuid}/ids"
+    headers = {"X-Riot-Token": api_key}
+    params = {"count": count}
+
+    try:
+        response = httpx.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == HTTP_TOO_MANY_REQUESTS:
+            time.sleep(10)
+            return get_match_ids_by_puuid(api_key, puuid, count)
+
+        if response.status_code == HTTP_OK:
+            return response.json()
+    except httpx.RequestError as e:
+        print(f"Error: Match ID: {e}")
+    return []
+
+
+def get_match_details(api_key: str, match_id: str) -> Match | None:
+    url = f"https://americas.api.riotgames.com/tft/match/v1/matches/{match_id}"
+    headers = {"X-Riot-Token": api_key}
+
+    try:
+        response = httpx.get(url, headers=headers, timeout=10)
+        if response.status_code == HTTP_TOO_MANY_REQUESTS:
+            time.sleep(10)
+            return get_match_details(api_key, match_id)
+
+        if response.status_code == HTTP_OK:
+            return Match.model_validate(response.json())
+    except (httpx.RequestError, ValidationError) as e:
+        print(f"Error: Match {match_id}: {e}")
+
+    return None
 
 
 def main() -> None:
 
-    load_dotenv()
-    api_key = os.getenv("RGAPI_KEY")
+    api_key = load_api_key()
+    ranking = get_challenger_ranking(api_key)
 
-    if api_key is None:
-        print("ERROR: Key")
-    else:
-        print("Sucess!")
+    if not ranking:
+        print("Error: Fail to get ranking")
+        return
 
-    game_name = "Juvenal"
-    tag_line = "81919"
+    top_puuids = [player.puuid for player in ranking.entries[:3]]
 
-    url_account = f"https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{game_name}/{tag_line}"
+    print(f"{len(ranking.entries)} Players loaded on RAM")
+    print(f"Selected {len(top_puuids)} Players to mine matches")
 
-    headers = {"X-Riot-Token": api_key}
+    matches_db: list[Match] = []
 
-    try:
-        response = requests.get(url_account, headers=headers, timeout=10)
+    for (
+        i,
+        puuid,
+    ) in enumerate(top_puuids, start=1):
+        match_ids = get_match_ids_by_puuid(api_key, puuid, count=2)
 
-        if response.status_code == HTTP_OK:
-            data = response.json()
-            my_puuid = data["puuid"]
+        for m_id in match_ids:
+            match_obj = get_match_details(api_key, m_id)
 
-            print(f"Sucess! Your PUUID is: {my_puuid}")
+            if match_obj:
+                matches_db.append(match_obj)
+            time.sleep(1.2)
 
-            url_matches = f"https://americas.api.riotgames.com/tft/match/v1/matches/by-puuid/{my_puuid}/ids?count=10"
-            response_matches = requests.get(url_matches, headers=headers, timeout=10)
-
-            if response_matches.status_code == HTTP_OK:
-                list_ids = response_matches.json()
-                print(f"Games ID's: {list_ids}")
-                if list_ids:
-                    match_id = list_ids[0]
-                    url_matches_info = f"https://americas.api.riotgames.com/tft/match/v1/matches/{match_id}"
-
-                    response_info = requests.get(url_matches_info, headers=headers, timeout=10)
-
-                    if response_info.status_code == HTTP_OK:
-                        matches_info = response_info.json()
-
-                        for i, p in enumerate(matches_info["info"]["participants"], start=1):
-                            puuid_player = p["puuid"]
-                            position = p["placement"]
-                            units_info = p["units"]
-
-                            print(f"Player {i} | Position: {position} | PUUID: {puuid_player}...")
-                            print("Final Team:")
-
-                            for uni in units_info:
-                                name = uni["character_id"].replace("TFT17_", "")
-                                stars = uni["tier"]
-                                text_itens = ", ".join(uni["itemNames"])
-                                item_name = text_itens.replace("TFT_Item_", "").replace("TFT17_Item_", "")
-
-                                print(f" - {name:<12} | Stars: {stars} | Items: {item_name}")
-
-        else:
-            print(f"Error:! {response.status_code}: {response.text}")
-    except RequestException as e:
-        print(f"Fail to conect!: {e}")
+    for idx, match in enumerate(matches_db, start=1):
+        duration_min = match.info.game_length / 60
+        total_players = len(match.info.participants)
+        print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
 
 
 if __name__ == "__main__":
