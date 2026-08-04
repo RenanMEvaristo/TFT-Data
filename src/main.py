@@ -10,6 +10,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from pydantic import ValidationError
 from models import ChallengerRanking, Match
+from collections import Counter
 
 HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
@@ -55,7 +56,12 @@ def get_match_ids_by_puuid(api_key: str, puuid: str, count: int = 5) -> list[str
     return []
 
 
-def get_match_details(api_key: str, match_id: str) -> Match | None:
+def get_match_details(api_key: str, match_id: str, retries: int = 3) -> Match | None:
+
+    if retries <= 0:
+        print(f"Limit exced for match {match_id}...")
+        return None
+
     url = f"https://americas.api.riotgames.com/tft/match/v1/matches/{match_id}"
     headers = {"X-Riot-Token": api_key}
 
@@ -63,14 +69,20 @@ def get_match_details(api_key: str, match_id: str) -> Match | None:
         response = httpx.get(url, headers=headers, timeout=10)
         if response.status_code == HTTP_TOO_MANY_REQUESTS:
             time.sleep(10)
-            return get_match_details(api_key, match_id)
+            return get_match_details(api_key, match_id, retries=retries - 1)
 
         if response.status_code == HTTP_OK:
             return Match.model_validate(response.json())
+
     except (httpx.RequestError, ValidationError) as e:
         print(f"Error: Match {match_id}: {e}")
 
     return None
+
+
+def analyze_meta(matches:list) -> None:
+
+    
 
 
 def main() -> None:
@@ -89,10 +101,8 @@ def main() -> None:
 
     matches_db: list[Match] = []
 
-    for (
-        i,
-        puuid,
-    ) in enumerate(top_puuids, start=1):
+    for i, puuid in enumerate(top_puuids, start=1):
+        print(f"\n [{i} / {len(top_puuids)}] Mining match PUUID: {puuid[:10]}...")
         match_ids = get_match_ids_by_puuid(api_key, puuid, count=2)
 
         for m_id in match_ids:
@@ -106,6 +116,8 @@ def main() -> None:
         duration_min = match.info.game_length / 60
         total_players = len(match.info.participants)
         print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
+
+    analyze_meta(matches_db)
 
 
 if __name__ == "__main__":
