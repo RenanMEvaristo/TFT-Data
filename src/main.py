@@ -12,9 +12,11 @@ from pydantic import ValidationError
 from models import ChallengerRanking, Match
 from collections import Counter
 
+
 HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
 TOP_FOUR = 4
+DEBUG = True
 
 
 def load_api_key() -> str:
@@ -89,21 +91,23 @@ def analyze_unit_meta(matches: list[Match]) -> list:
     for i, match in enumerate(matches, start=1):
         match_info(match, i)
         for participant in match.info.participants:
-            print(f"Participant Placement {participant.placement}")
             placement = participant.placement
 
             if placement <= TOP_FOUR:
+                print(f"Participant Placement {participant.placement}")
                 for unit in participant.units:
                     picked_unit = unit.character_id
                     picked_unit = picked_unit.replace("TFT17_", "")
-                    atual_team_list.append(picked_unit)  # debug only
                     unit_list.append(picked_unit)
-                    print(atual_team_list)
-                    atual_team_list = []
+                    if DEBUG:
+                        atual_team_list.append(picked_unit)  # debug only
+                if DEBUG:
+                    print(atual_team_list)  # debug only
+                    atual_team_list = []  # debug only
         print("End of match")
         print("------------\n\n")
 
-    # print(f"{unit_list}")
+    return unit_list
 
 
 def count_units(count: list) -> None:
@@ -179,6 +183,20 @@ def units_name() -> list:
     ]
 
 
+def fill_matches_db(puuids: list, api: str, matc_db: list[Match]) -> list:
+    for i, puuid in enumerate(puuids, start=1):
+        print(f"\n [{i} / {len(puuids)}] Mining match PUUID: {puuid[:10]}...")
+        match_ids = get_match_ids_by_puuid(api, puuid, count=2)
+
+        for m_id in match_ids:
+            match_obj = get_match_details(api, m_id)
+
+            if match_obj:
+                matc_db.append(match_obj)
+            time.sleep(1.2)
+    return matc_db
+
+
 def analyze_trait_meta(matches: list[Match]) -> None:
     trait_list = []
     for match in matches:
@@ -212,22 +230,10 @@ def main() -> None:
     print(f"Selected {len(top_puuids)} Players to mine matches")
 
     matches_db: list[Match] = []
+    matches_db = fill_matches_db(top_puuids, api_key, matches_db)
 
-    for i, puuid in enumerate(top_puuids, start=1):
-        print(f"\n [{i} / {len(top_puuids)}] Mining match PUUID: {puuid[:10]}...")
-        match_ids = get_match_ids_by_puuid(api_key, puuid, count=2)
-
-        for m_id in match_ids:
-            match_obj = get_match_details(api_key, m_id)
-
-            if match_obj:
-                matches_db.append(match_obj)
-            time.sleep(1.2)
-
-    analyze_unit_meta(matches_db)
-
-    # picked_unit_list = analyze_trait_meta(matches_db)
-    # count_units(picked_unit_list)
+    picked_unit_list = analyze_unit_meta(matches_db)
+    count_units(picked_unit_list)
 
 
 if __name__ == "__main__":
