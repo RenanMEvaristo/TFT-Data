@@ -81,9 +81,11 @@ def get_match_details(api_key: str, match_id: str, retries: int = 3) -> Match | 
     return None
 
 
-def analyze_unit_meta(matches: list[Match]) -> None:
+def analyze_unit_meta(matches: list[Match]) -> list:
 
     unit_list = []
+    atual_team_list = []
+
     for match in matches:
         for participant in match.info.participants:
             print(f"Participant Placement {participant.placement}")
@@ -93,9 +95,84 @@ def analyze_unit_meta(matches: list[Match]) -> None:
                 for unit in participant.units:
                     picked_unit = unit.character_id
                     picked_unit = picked_unit.replace("TFT17_", "")
-
+                    atual_team_list.append(picked_unit)  # debug only
                     unit_list.append(picked_unit)
-    print(f"{unit_list}")
+                    print(atual_team_list)
+                    atual_team_list = []
+    # print(f"{unit_list}")
+
+
+def count_units(count: list) -> None:
+    counting = Counter(count)
+    print(counting)
+
+
+def units_name() -> list:
+    return [
+        "Aatrox",
+        "Briar",
+        "Caitlyn",
+        "Chogath",
+        "Ezreal",
+        "Leona",
+        "Lissandra",
+        "Nasus",
+        "Poppy",
+        "RekSai",
+        "Talon",
+        "Teemo",
+        "Twisted Fate",
+        "Veigar",
+        "Akali",
+        "Belveth",
+        "Gnar",
+        "Gragas",
+        "Gwen",
+        "Jax",
+        "Jinx",
+        "Meepsie",
+        "Milio",
+        "Mordekaiser",
+        "Pantheon",
+        "Pyke",
+        "Zoe",
+        "Aurora",
+        "Diana",
+        "Fizz",
+        "Illaoi",
+        "Kaisa",
+        "Lulu",
+        "Maokai",
+        "Miss Fortune",
+        "Ornn",
+        "Rhaast",
+        "Samira",
+        "Urgot",
+        "Viktor",
+        "Aurelion Sol",
+        "Corki",
+        "Karma",
+        "Kindred",
+        "Leblanc",
+        "Master Yi",
+        "Nami",
+        "Nunu",
+        "Rammus",
+        "Riven",
+        "Tahm Kench",
+        "The Mighty Mech",
+        "Xayah",
+        "Bard",
+        "Blitzcrank",
+        "Fiora",
+        "Graves",
+        "Jhin",
+        "Morgana",
+        "Shen",
+        "Sona",
+        "Vex",
+        "Zed",
+    ]
 
 
 def analyze_trait_meta(matches: list[Match]) -> None:
@@ -142,6 +219,9 @@ def main() -> None:
         print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
 
     analyze_unit_meta(matches_db)
+    analyze_trait_meta(matches_db)
+    # picked_unit_list = analyze_trait_meta(matches_db)
+    # count_units(picked_unit_list)
 
 
 if __name__ == "__main__":
