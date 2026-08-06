@@ -99,6 +99,9 @@ def analyze_unit_meta(matches: list[Match]) -> list:
                     unit_list.append(picked_unit)
                     print(atual_team_list)
                     atual_team_list = []
+        print("End of match")
+        print("------------\n\n")
+
     # print(f"{unit_list}")
 
 
@@ -219,7 +222,7 @@ def main() -> None:
         print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
 
     analyze_unit_meta(matches_db)
-    analyze_trait_meta(matches_db)
+
     # picked_unit_list = analyze_trait_meta(matches_db)
     # count_units(picked_unit_list)
 
