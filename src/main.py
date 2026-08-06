@@ -183,7 +183,8 @@ def units_name() -> list:
     ]
 
 
-def fill_matches_db(puuids: list, api: str, matc_db: list[Match]) -> list:
+def fill_matches_db(puuids: list, api: str) -> list:
+    matches_db = []
     for i, puuid in enumerate(puuids, start=1):
         print(f"\n [{i} / {len(puuids)}] Mining match PUUID: {puuid[:10]}...")
         match_ids = get_match_ids_by_puuid(api, puuid, count=2)
@@ -192,9 +193,9 @@ def fill_matches_db(puuids: list, api: str, matc_db: list[Match]) -> list:
             match_obj = get_match_details(api, m_id)
 
             if match_obj:
-                matc_db.append(match_obj)
+                matches_db.append(match_obj)
             time.sleep(1.2)
-    return matc_db
+    return matches_db
 
 
 def analyze_trait_meta(matches: list[Match]) -> None:
@@ -229,8 +230,7 @@ def main() -> None:
     print(f"{len(ranking.entries)} Players loaded on RAM")
     print(f"Selected {len(top_puuids)} Players to mine matches")
 
-    matches_db: list[Match] = []
-    matches_db = fill_matches_db(top_puuids, api_key, matches_db)
+    matches_db = fill_matches_db(top_puuids, api_key)
 
     picked_unit_list = analyze_unit_meta(matches_db)
     count_units(picked_unit_list)
