@@ -86,7 +86,8 @@ def analyze_unit_meta(matches: list[Match]) -> list:
     unit_list = []
     atual_team_list = []
 
-    for match in matches:
+    for i, match in enumerate(matches, start=1):
+        match_info(match, i)
         for participant in match.info.participants:
             print(f"Participant Placement {participant.placement}")
             placement = participant.placement
@@ -189,6 +190,13 @@ def analyze_trait_meta(matches: list[Match]) -> None:
     print(f"{trait_list}")
 
 
+def match_info(matches: list[Match], idx: int) -> None:
+
+    duration_min = matches.info.game_length / 60
+    total_players = len(matches.info.participants)
+    print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
+
+
 def main() -> None:
 
     api_key = load_api_key()
@@ -215,11 +223,6 @@ def main() -> None:
             if match_obj:
                 matches_db.append(match_obj)
             time.sleep(1.2)
-
-    for idx, match in enumerate(matches_db, start=1):
-        duration_min = match.info.game_length / 60
-        total_players = len(match.info.participants)
-        print(f"Match #{idx}: Duration: {duration_min:.1f} min | Players: {total_players}")
 
     analyze_unit_meta(matches_db)
 
