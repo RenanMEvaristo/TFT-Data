@@ -1,22 +1,36 @@
 # Copyright (c) 2024 Renan Evaristo
 
 import os
-import sys
 import time
-from pathlib import Path
-
-import httpx
-import pandas as pd
-from dotenv import load_dotenv
-from pydantic import ValidationError
-from models import ChallengerRanking, Match
 from collections import Counter
 
+import httpx
+from dotenv import load_dotenv
+from pydantic import ValidationError
+
+from models import ChallengerRanking, Match
 
 HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
 TOP_FOUR = 4
 DEBUG = True
+
+
+CLASS_MAPPER = {
+    # Nomes da API da Riot : Nome Bonito no Jogo
+    "ASTrait": "Challenger",
+    "HPTank": "Brawler",
+    "ResistTank": "Bastion",
+    "ShieldTank": "Vanguard",
+    "ManaTrait": "Conduit",
+    "MeleeTrait": "Marauder",
+    "RangedTrait": "Sniper",
+    "AssassinTrait": "Rogue",
+    "APTrait": "Replicator",
+    "SummonTrait": "Shepherd",
+    "FlexTrait": "Voyager",
+    "Fateweaver": "Fateweaver",
+}
 
 
 def load_api_key() -> str:
@@ -110,9 +124,8 @@ def analyze_unit_meta(matches: list[Match]) -> list:
     return unit_list
 
 
-def count_units(count: list) -> None:
-    counting = Counter(count)
-    print(counting)
+def count_elements(count: list) -> None:
+    return Counter(count)
 
 
 def units_name() -> list:
@@ -206,7 +219,17 @@ def analyze_trait_meta(matches: list[Match]) -> None:
                 trait_name = traits.name
                 trait_name = trait_name.replace("TFT17_", "")
                 trait_list.append(trait_name)
-    print(f"{trait_list}")
+    # print(f"{trait_list}")
+    return trait_list
+
+
+def real_trait_name(trait: list[str]) -> list[str]:
+
+    real_name_trait = []
+    for traits in trait:
+        real_name = CLASS_MAPPER.get(traits, traits)
+        real_name_trait.append(real_name)
+    return real_name_trait
 
 
 def match_info(matches: list[Match], idx: int) -> None:
@@ -233,7 +256,11 @@ def main() -> None:
     matches_db = fill_matches_db(top_puuids, api_key)
 
     picked_unit_list = analyze_unit_meta(matches_db)
-    count_units(picked_unit_list)
+    count_elements(picked_unit_list)
+    trait_list = analyze_trait_meta(matches_db)
+    game_name_trait = real_trait_name(trait_list)
+    count_real_name_trait = count_elements(game_name_trait)
+    print(count_real_name_trait)
 
 
 if __name__ == "__main__":
