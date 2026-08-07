@@ -145,7 +145,7 @@ def count_traits_meta(matches: list[Match]) -> Counter:
                 for unit in participant.units:
                     hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
                     traits = CHAMPION_TRAITS.get(hero_name, [])
-                    traits_list.extend(traits)  # Adiciona todas as traits do herói na lista
+                    traits_list.extend(traits)  # lista de traits
     return Counter(traits_list)
 
 
@@ -180,7 +180,7 @@ def main() -> None:
         print("Error: Fail to get ranking")
         return
 
-    top_puuids = [player.puuid for player in ranking.entries[:3]]
+    top_puuids = [player.puuid for player in ranking.entries]
 
     print(f"{len(ranking.entries)} Players loaded on RAM")
     print(f"Selected {len(top_puuids)} Players to mine matches")
@@ -192,11 +192,11 @@ def main() -> None:
 
     print("TOP 4 HEROES IN META (TOP 4 POSITION)")
     hero_counter = count_heroes_meta(matches_db)
-    for hero, count in hero_counter.most_common(10):
+    for hero, count in hero_counter.most_common():
         print(f"{hero:<15} -> Picked: {count} times")
 
     trait_counter = count_traits_meta(matches_db)
-    for trait, count in trait_counter.most_common(10):
+    for trait, count in trait_counter.most_common():
         print(f"{trait:<15} -> Frequency: {count} times")
 
 

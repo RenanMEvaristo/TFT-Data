@@ -1,6 +1,9 @@
 README.md
 pyproject.toml
 src/chalenger.py
+src/constants.py
+src/graph_heroes.py
+src/graph_traits.py
 src/main.py
 src/models.py
 src/test_chalenger.py

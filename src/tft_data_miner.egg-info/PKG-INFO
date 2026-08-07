@@ -11,3 +11,4 @@ Requires-Dist: openpyxl
 Requires-Dist: pydantic
 Requires-Dist: dotenv>=0.9.9
 Requires-Dist: httpx>=0.28.1
+Requires-Dist: matplotlib>=3.11.1
