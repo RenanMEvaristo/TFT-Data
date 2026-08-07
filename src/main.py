@@ -8,97 +8,8 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import ValidationError
 
-from models import ChallengerRanking, Match
-
-HTTP_OK = 200
-HTTP_TOO_MANY_REQUESTS = 429
-TOP_FOUR = 4
-DEBUG = True
-
-
-CLASS_MAPPER = {
-    # Nomes da API da Riot : Nome Bonito no Jogo
-    "ASTrait": "Challenger",
-    "HPTank": "Brawler",
-    "ResistTank": "Bastion",
-    "ShieldTank": "Vanguard",
-    "ManaTrait": "Conduit",
-    "MeleeTrait": "Marauder",
-    "RangedTrait": "Sniper",
-    "AssassinTrait": "Rogue",
-    "APTrait": "Replicator",
-    "SummonTrait": "Shepherd",
-    "FlexTrait": "Voyager",
-    "Fateweaver": "Fateweaver",
-}
-
-# src/constants.py
-
-CHAMPION_TRAITS = {
-    "Aatrox": ["Challenger", "Brawler"],
-    "Briar": ["Rogue", "Brawler"],
-    "Caitlyn": ["Sniper", "AnimaSquad"],
-    "Chogath": ["Brawler", "Primordian"],
-    "Ezreal": ["Sniper", "PsyOps"],
-    "Leona": ["Bastion", "Vanguard"],
-    "Lissandra": ["Replicator", "DarkStar"],
-    "Nasus": ["Brawler", "Bastion"],
-    "Poppy": ["Vanguard", "SpaceGroove"],
-    "RekSai": ["Marauder", "Rogue"],
-    "Talon": ["Rogue", "PsyOps"],
-    "Teemo": ["Replicator", "SpaceGroove"],
-    "TwistedFate": ["Conduit", "Fateweaver"],
-    "Veigar": ["Replicator", "Astronaut"],
-    "Akali": ["Rogue", "DRX"],
-    "Belveth": ["Marauder", "DarkStar"],
-    "Gnar": ["Brawler", "Marauder"],
-    "Gragas": ["Bastion", "SpaceGroove"],
-    "Gwen": ["Replicator", "AnimaSquad"],
-    "Jax": ["Vanguard", "Mecha"],
-    "Jinx": ["Sniper", "AnimaSquad"],
-    "Meepsie": ["Shepherd", "SpaceGroove"],
-    "Milio": ["Replicator", "SpaceGroove"],
-    "Mordekaiser": ["Vanguard", "DarkStar"],
-    "Pantheon": ["Bastion", "DRX"],
-    "Pyke": ["Rogue", "PsyOps"],
-    "Zoe": ["Replicator", "Fateweaver"],
-    "Aurora": ["Conduit", "Astronaut"],
-    "Diana": ["Replicator", "DarkStar"],
-    "Fizz": ["Rogue", "SpaceGroove"],
-    "Illaoi": ["Brawler", "DRX"],
-    "Kaisa": ["Sniper", "AnimaSquad"],
-    "Lulu": ["Conduit", "SpaceGroove"],
-    "Maokai": ["Brawler", "Astronaut"],
-    "MissFortune": ["Sniper", "AnimaSquad"],
-    "Ornn": ["Bastion", "Astronaut"],
-    "Rhaast": ["Marauder", "Primordian"],
-    "Samira": ["Sniper", "PsyOps"],
-    "Urgot": ["Sniper", "Primordian"],
-    "Viktor": ["Replicator", "PsyOps"],
-    "AurelionSol": ["Conduit", "DarkStar"],
-    "Corki": ["Sniper", "Astronaut"],
-    "Karma": ["Replicator", "DarkStar"],
-    "Kindred": ["Sniper", "Fateweaver"],
-    "Leblanc": ["Replicator", "DarkStar"],
-    "MasterYi": ["Marauder", "PsyOps"],
-    "Nami": ["Conduit", "SpaceGroove"],
-    "Nunu": ["Brawler", "SpaceGroove"],
-    "Rammus": ["Bastion", "SpaceGroove"],
-    "Riven": ["Vanguard", "AnimaSquad"],
-    "TahmKench": ["Brawler", "SpaceGroove"],
-    "TheMightyMech": ["Mecha", "Brawler"],
-    "Xayah": ["Sniper", "DRX"],
-    "Bard": ["Conduit", "Astronaut"],
-    "Blitzcrank": ["Vanguard", "SpaceGroove"],
-    "Fiora": ["Marauder", "AnimaSquad"],
-    "Graves": ["Sniper", "DRX"],
-    "Jhin": ["Sniper", "DarkStar"],
-    "Morgana": ["Replicator", "DarkStar"],
-    "Shen": ["Bastion", "DRX"],
-    "Sona": ["Conduit", "SpaceGroove"],
-    "Vex": ["Replicator", "DarkStar"],
-    "Zed": ["Rogue", "PsyOps"],
-}
+from constants import CHAMPION_TRAITS, HTTP_OK, HTTP_TOO_MANY_REQUESTS, TOP_FOUR
+from models import ChallengerRanking, Match, Participant, Unit
 
 
 def load_api_key() -> str:
@@ -165,32 +76,41 @@ def get_match_details(api_key: str, match_id: str, retries: int = 3) -> Match | 
     return None
 
 
-def analyze_unit_meta(matches: list[Match]) -> list:
+def get_hero_traits(unit: Unit) -> tuple[str, list[str]]:
 
-    unit_list = []
-    atual_team_list = []
+    hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
+    traits = CHAMPION_TRAITS.get(hero_name, ["No trait"])
+    return hero_name, traits
+
+
+def extract_team_comp(participant: Participant) -> dict[str, list[str]]:
+
+    team_comp = {}
+    for unit in participant.units:
+        hero_name, traits = get_hero_traits(unit)
+        team_comp[hero_name] = traits
+    return team_comp
+
+
+def analyze_unit_meta(matches: list[Match]) -> dict:
+    matches_report = {}
 
     for i, match in enumerate(matches, start=1):
-        match_info(match, i)
+        match_key = f"Match #{i}"
+        matches_report[match_key] = {}
+
+        print(f"\n{match_key} (Duration: {match.info.game_length / 60:.1f} min)")
+
         for participant in match.info.participants:
             placement = participant.placement
 
             if placement <= TOP_FOUR:
-                print(f"Participant Placement {participant.placement}")
-                for unit in participant.units:
-                    picked_unit = unit.character_id
-                    picked_unit = picked_unit.replace("TFT17_", "")
+                placement_key = f"Placement {participant.placement}"
 
-                    unit_list.append(picked_unit)
-                    if DEBUG:
-                        atual_team_list.append(picked_unit)  # debug only
-                if DEBUG:
-                    print(atual_team_list)  # debug only
-                    atual_team_list = []  # debug only
-        print("End of match")
-        print("------------\n\n")
+                team_comp = extract_team_comp(participant)
+                matches_report[match_key][placement_key] = team_comp
 
-    return unit_list
+    return matches_report
 
 
 def count_elements(count: list) -> None:
@@ -265,13 +185,6 @@ def units_name() -> list:
     ]
 
 
-# def get_unit_tratis(unit_id: str) -> list[str]:
-
-#     clean_name = unit_id.replace("TFT17_", "").replace("TFT_", "").replace(" ", " ")
-
-#     return CHAMPION_TRAITS.get(clean_name, ["Unknow"])
-
-
 def fill_matches_db(puuids: list, api: str) -> list:
     matches_db = []
     for i, puuid in enumerate(puuids, start=1):
@@ -300,16 +213,7 @@ def analyze_hero_traits_meta(matches: list[Match]) -> dict[str, list[str]]:
     return hero_traits_map
 
 
-# def real_trait_name(trait: list[str]) -> list[str]:
-
-#     real_name_trait = []
-#     for traits in trait:
-#         real_name = CLASS_MAPPER.get(traits, traits)
-#         real_name_trait.append(real_name)
-#     return real_name_trait
-
-
-def match_info(matches: list[Match], idx: int) -> None:
+def match_info(matches: Match, idx: int) -> None:
 
     duration_min = matches.info.game_length / 60
     total_players = len(matches.info.participants)
@@ -332,11 +236,12 @@ def main() -> None:
 
     matches_db = fill_matches_db(top_puuids, api_key)
 
-    picked_unit_list = analyze_unit_meta(matches_db)
+    analyze_unit_meta(matches_db)
+    analyze_hero_traits_meta(matches_db)
 
-    count_units = count_elements(picked_unit_list)
+    # count_units = count_elements(picked_unit_list)
 
-    print(count_units)
+    # print(count_units)
 
 
 if __name__ == "__main__":
