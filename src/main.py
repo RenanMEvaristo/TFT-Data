@@ -164,19 +164,6 @@ def fill_matches_db(puuids: list, api: str) -> list:
     return matches_db
 
 
-def analyze_hero_traits_meta(matches: list[Match]) -> dict[str, list[str]]:
-    hero_traits_map: dict[str, list[str]] = {}
-
-    for match in matches:
-        for participant in match.info.participants:
-            for unit in participant.units:
-                hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
-                traits = CHAMPION_TRAITS.get(hero_name, ["Don't have traits"])
-                hero_traits_map[hero_name] = traits
-
-    return hero_traits_map
-
-
 def match_info(matches: Match, idx: int) -> None:
 
     duration_min = matches.info.game_length / 60
