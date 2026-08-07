@@ -113,76 +113,40 @@ def analyze_unit_meta(matches: list[Match]) -> dict:
     return matches_report
 
 
-def count_elements(count: list) -> None:
-    return Counter(count)
+def print_matches_player_traits(matches_report: dict) -> None:
+
+    for match_key, placements in matches_report.items():
+        print(f"\n{match_key}")
+        for placement_key, team in placements.items():
+            print(f"{placement_key}")
+            for hero, traits in team.items():
+                traits_str = ", ".join(traits)
+                print(f"{hero:<15} -> Traits: {traits_str}")
 
 
-def units_name() -> list:
-    return [
-        "Aatrox",
-        "Briar",
-        "Caitlyn",
-        "Chogath",
-        "Ezreal",
-        "Leona",
-        "Lissandra",
-        "Nasus",
-        "Poppy",
-        "RekSai",
-        "Talon",
-        "Teemo",
-        "Twisted Fate",
-        "Veigar",
-        "Akali",
-        "Belveth",
-        "Gnar",
-        "Gragas",
-        "Gwen",
-        "Jax",
-        "Jinx",
-        "Meepsie",
-        "Milio",
-        "Mordekaiser",
-        "Pantheon",
-        "Pyke",
-        "Zoe",
-        "Aurora",
-        "Diana",
-        "Fizz",
-        "Illaoi",
-        "Kaisa",
-        "Lulu",
-        "Maokai",
-        "Miss Fortune",
-        "Ornn",
-        "Rhaast",
-        "Samira",
-        "Urgot",
-        "Viktor",
-        "Aurelion Sol",
-        "Corki",
-        "Karma",
-        "Kindred",
-        "Leblanc",
-        "Master Yi",
-        "Nami",
-        "Nunu",
-        "Rammus",
-        "Riven",
-        "Tahm Kench",
-        "The Mighty Mech",
-        "Xayah",
-        "Bard",
-        "Blitzcrank",
-        "Fiora",
-        "Graves",
-        "Jhin",
-        "Morgana",
-        "Shen",
-        "Sona",
-        "Vex",
-        "Zed",
-    ]
+def count_heroes_meta(matches: list[Match]) -> Counter:
+
+    heroes_list = []
+    for match in matches:
+        for participant in match.info.participants:
+            if participant.placement <= TOP_FOUR:
+                for unit in participant.units:
+                    hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
+                    heroes_list.append(hero_name)
+    return Counter(heroes_list)
+
+
+def count_traits_meta(matches: list[Match]) -> Counter:
+
+    traits_list = []
+    for match in matches:
+        for participant in match.info.participants:
+            if participant.placement <= TOP_FOUR:
+                for unit in participant.units:
+                    hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
+                    traits = CHAMPION_TRAITS.get(hero_name, [])
+                    traits_list.extend(traits)  # Adiciona todas as traits do herói na lista
+    return Counter(traits_list)
 
 
 def fill_matches_db(puuids: list, api: str) -> list:
@@ -236,12 +200,17 @@ def main() -> None:
 
     matches_db = fill_matches_db(top_puuids, api_key)
 
-    analyze_unit_meta(matches_db)
-    analyze_hero_traits_meta(matches_db)
+    matches_report = analyze_unit_meta(matches_db)
+    print_matches_player_traits(matches_report)
 
-    # count_units = count_elements(picked_unit_list)
+    print("TOP 4 HEROES IN META (TOP 4 POSITION)")
+    hero_counter = count_heroes_meta(matches_db)
+    for hero, count in hero_counter.most_common(10):
+        print(f"{hero:<15} -> Picked: {count} times")
 
-    # print(count_units)
+    trait_counter = count_traits_meta(matches_db)
+    for trait, count in trait_counter.most_common(10):
+        print(f"{trait:<15} -> Frequency: {count} times")
 
 
 if __name__ == "__main__":
