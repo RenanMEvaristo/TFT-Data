@@ -32,6 +32,74 @@ CLASS_MAPPER = {
     "Fateweaver": "Fateweaver",
 }
 
+# src/constants.py
+
+CHAMPION_TRAITS = {
+    "Aatrox": ["Challenger", "Brawler"],
+    "Briar": ["Rogue", "Brawler"],
+    "Caitlyn": ["Sniper", "AnimaSquad"],
+    "Chogath": ["Brawler", "Primordian"],
+    "Ezreal": ["Sniper", "PsyOps"],
+    "Leona": ["Bastion", "Vanguard"],
+    "Lissandra": ["Replicator", "DarkStar"],
+    "Nasus": ["Brawler", "Bastion"],
+    "Poppy": ["Vanguard", "SpaceGroove"],
+    "RekSai": ["Marauder", "Rogue"],
+    "Talon": ["Rogue", "PsyOps"],
+    "Teemo": ["Replicator", "SpaceGroove"],
+    "TwistedFate": ["Conduit", "Fateweaver"],
+    "Veigar": ["Replicator", "Astronaut"],
+    "Akali": ["Rogue", "DRX"],
+    "Belveth": ["Marauder", "DarkStar"],
+    "Gnar": ["Brawler", "Marauder"],
+    "Gragas": ["Bastion", "SpaceGroove"],
+    "Gwen": ["Replicator", "AnimaSquad"],
+    "Jax": ["Vanguard", "Mecha"],
+    "Jinx": ["Sniper", "AnimaSquad"],
+    "Meepsie": ["Shepherd", "SpaceGroove"],
+    "Milio": ["Replicator", "SpaceGroove"],
+    "Mordekaiser": ["Vanguard", "DarkStar"],
+    "Pantheon": ["Bastion", "DRX"],
+    "Pyke": ["Rogue", "PsyOps"],
+    "Zoe": ["Replicator", "Fateweaver"],
+    "Aurora": ["Conduit", "Astronaut"],
+    "Diana": ["Replicator", "DarkStar"],
+    "Fizz": ["Rogue", "SpaceGroove"],
+    "Illaoi": ["Brawler", "DRX"],
+    "Kaisa": ["Sniper", "AnimaSquad"],
+    "Lulu": ["Conduit", "SpaceGroove"],
+    "Maokai": ["Brawler", "Astronaut"],
+    "MissFortune": ["Sniper", "AnimaSquad"],
+    "Ornn": ["Bastion", "Astronaut"],
+    "Rhaast": ["Marauder", "Primordian"],
+    "Samira": ["Sniper", "PsyOps"],
+    "Urgot": ["Sniper", "Primordian"],
+    "Viktor": ["Replicator", "PsyOps"],
+    "AurelionSol": ["Conduit", "DarkStar"],
+    "Corki": ["Sniper", "Astronaut"],
+    "Karma": ["Replicator", "DarkStar"],
+    "Kindred": ["Sniper", "Fateweaver"],
+    "Leblanc": ["Replicator", "DarkStar"],
+    "MasterYi": ["Marauder", "PsyOps"],
+    "Nami": ["Conduit", "SpaceGroove"],
+    "Nunu": ["Brawler", "SpaceGroove"],
+    "Rammus": ["Bastion", "SpaceGroove"],
+    "Riven": ["Vanguard", "AnimaSquad"],
+    "TahmKench": ["Brawler", "SpaceGroove"],
+    "TheMightyMech": ["Mecha", "Brawler"],
+    "Xayah": ["Sniper", "DRX"],
+    "Bard": ["Conduit", "Astronaut"],
+    "Blitzcrank": ["Vanguard", "SpaceGroove"],
+    "Fiora": ["Marauder", "AnimaSquad"],
+    "Graves": ["Sniper", "DRX"],
+    "Jhin": ["Sniper", "DarkStar"],
+    "Morgana": ["Replicator", "DarkStar"],
+    "Shen": ["Bastion", "DRX"],
+    "Sona": ["Conduit", "SpaceGroove"],
+    "Vex": ["Replicator", "DarkStar"],
+    "Zed": ["Rogue", "PsyOps"],
+}
+
 
 def load_api_key() -> str:
     load_dotenv()
@@ -112,6 +180,7 @@ def analyze_unit_meta(matches: list[Match]) -> list:
                 for unit in participant.units:
                     picked_unit = unit.character_id
                     picked_unit = picked_unit.replace("TFT17_", "")
+
                     unit_list.append(picked_unit)
                     if DEBUG:
                         atual_team_list.append(picked_unit)  # debug only
@@ -196,6 +265,13 @@ def units_name() -> list:
     ]
 
 
+# def get_unit_tratis(unit_id: str) -> list[str]:
+
+#     clean_name = unit_id.replace("TFT17_", "").replace("TFT_", "").replace(" ", " ")
+
+#     return CHAMPION_TRAITS.get(clean_name, ["Unknow"])
+
+
 def fill_matches_db(puuids: list, api: str) -> list:
     matches_db = []
     for i, puuid in enumerate(puuids, start=1):
@@ -211,25 +287,26 @@ def fill_matches_db(puuids: list, api: str) -> list:
     return matches_db
 
 
-def analyze_trait_meta(matches: list[Match]) -> None:
-    trait_list = []
+def analyze_hero_traits_meta(matches: list[Match]) -> dict[str, list[str]]:
+    hero_traits_map: dict[str, list[str]] = {}
+
     for match in matches:
         for participant in match.info.participants:
-            for traits in participant.traits:
-                trait_name = traits.name
-                trait_name = trait_name.replace("TFT17_", "")
-                trait_list.append(trait_name)
-    # print(f"{trait_list}")
-    return trait_list
+            for unit in participant.units:
+                hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
+                traits = CHAMPION_TRAITS.get(hero_name, ["Don't have traits"])
+                hero_traits_map[hero_name] = traits
+
+    return hero_traits_map
 
 
-def real_trait_name(trait: list[str]) -> list[str]:
+# def real_trait_name(trait: list[str]) -> list[str]:
 
-    real_name_trait = []
-    for traits in trait:
-        real_name = CLASS_MAPPER.get(traits, traits)
-        real_name_trait.append(real_name)
-    return real_name_trait
+#     real_name_trait = []
+#     for traits in trait:
+#         real_name = CLASS_MAPPER.get(traits, traits)
+#         real_name_trait.append(real_name)
+#     return real_name_trait
 
 
 def match_info(matches: list[Match], idx: int) -> None:
@@ -256,11 +333,10 @@ def main() -> None:
     matches_db = fill_matches_db(top_puuids, api_key)
 
     picked_unit_list = analyze_unit_meta(matches_db)
-    count_elements(picked_unit_list)
-    trait_list = analyze_trait_meta(matches_db)
-    game_name_trait = real_trait_name(trait_list)
-    count_real_name_trait = count_elements(game_name_trait)
-    print(count_real_name_trait)
+
+    count_units = count_elements(picked_unit_list)
+
+    print(count_units)
 
 
 if __name__ == "__main__":
