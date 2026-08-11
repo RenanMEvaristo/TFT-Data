@@ -13,6 +13,8 @@ from models import ChallengerRanking, Match, Participant, Unit
 
 
 def load_api_key() -> str:
+    "Function that loads the API key from the .env file and returns the key if it is valid."
+
     load_dotenv()
     api_key = os.getenv("RGAPI_KEY")
     if not api_key:
@@ -21,6 +23,8 @@ def load_api_key() -> str:
 
 
 def get_challenger_ranking(api_key: str) -> ChallengerRanking | None:
+    "A function that takes the API key as an argument and loads the TFT Ranked"
+    "Challenger league, returning either the JSON file or None."
     url = "https://br1.api.riotgames.com/tft/league/v1/challenger?queue=RANKED_TFT"
     headers = {"X-Riot-Token": api_key}
 
@@ -34,16 +38,23 @@ def get_challenger_ranking(api_key: str) -> ChallengerRanking | None:
     return None
 
 
-def get_match_ids_by_puuid(api_key: str, puuid: str, count: int = 5) -> list[str]:
+def get_match_ids_by_puuid(api_key: str, puuid: str, max_matches_to_fetch: int = 5) -> list[str]:
+    """
+    - puuid: unique identifer of the player
+    - count: max number of matches to fetch
+    If necessary, automatically retries 2 times. Timeouts after 10 seconds.
+    Returns None if ANY error occurs.
+    """
+
     url = f"https://americas.api.riotgames.com/tft/match/v1/matches/by-puuid/{puuid}/ids"
     headers = {"X-Riot-Token": api_key}
-    params = {"count": count}
+    params = {"count": max_matches_to_fetch}
 
     try:
         response = httpx.get(url, headers=headers, params=params, timeout=10)
         if response.status_code == HTTP_TOO_MANY_REQUESTS:
             time.sleep(10)
-            return get_match_ids_by_puuid(api_key, puuid, count)
+            return get_match_ids_by_puuid(api_key, puuid, max_matches_to_fetch)
 
         if response.status_code == HTTP_OK:
             return response.json()
@@ -153,7 +164,7 @@ def fill_matches_db(puuids: list, api: str) -> list:
     matches_db = []
     for i, puuid in enumerate(puuids, start=1):
         print(f"\n [{i} / {len(puuids)}] Mining match PUUID: {puuid[:10]}...")
-        match_ids = get_match_ids_by_puuid(api, puuid, count=2)
+        match_ids = get_match_ids_by_puuid(api, puuid, max_matches_to_fetch=2)
 
         for m_id in match_ids:
             match_obj = get_match_details(api, m_id)
