@@ -1,5 +1,7 @@
 # Copyright (c) 2024 Renan Evaristo
+"Arquivo de testes"
 
+"""
 import os
 import sys
 import time
@@ -80,3 +82,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+"""

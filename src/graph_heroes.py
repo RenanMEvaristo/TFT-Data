@@ -11,9 +11,9 @@ from main import count_heroes_meta, fill_matches_db, get_challenger_ranking, loa
 
 
 def show_heroes_chart_in_ram(hero_counter: Counter, top_n: int = 10) -> None:
-    """Abre o gráfico dos Heróis mais jogados diretamente em uma janela pop-up na memória RAM."""
+    """Opens the chart of the most played Heroes directly in a pop-up window in RAM."""
     if not hero_counter:
-        print("⚠️ O contador de Heróis está vazio.")
+        print("⚠️ Hero counter is empty.")
         return
 
     top_heroes = hero_counter.most_common(top_n)
@@ -65,6 +65,7 @@ def main() -> None:
 
     hero_counter = count_heroes_meta(matches_db)
 
+    """top_n = selects only the 40 most used heroes"""
     show_heroes_chart_in_ram(hero_counter, top_n=40)
 
 
