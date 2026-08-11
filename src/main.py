@@ -23,8 +23,8 @@ def load_api_key() -> str:
 
 
 def get_challenger_ranking(api_key: str) -> ChallengerRanking | None:
-    "A function that takes the API key as an argument and loads the TFT Ranked"
-    "Challenger league, returning either the JSON file or None."
+    """A function that takes the API key as an argument and loads the TFT Ranked"
+    Challenger league, returning either the JSON file or None."""
     url = "https://br1.api.riotgames.com/tft/league/v1/challenger?queue=RANKED_TFT"
     headers = {"X-Riot-Token": api_key}
 
@@ -42,8 +42,7 @@ def get_match_ids_by_puuid(api_key: str, puuid: str, max_matches_to_fetch: int =
     """
     - puuid: unique identifer of the player
     - count: max number of matches to fetch
-    If necessary, automatically retries 2 times. Timeouts after 10 seconds.
-    Returns None if ANY error occurs.
+    - Time.sleep to avoid exceeding requests per minute.
     """
 
     url = f"https://americas.api.riotgames.com/tft/match/v1/matches/by-puuid/{puuid}/ids"
@@ -64,6 +63,10 @@ def get_match_ids_by_puuid(api_key: str, puuid: str, max_matches_to_fetch: int =
 
 
 def get_match_details(api_key: str, match_id: str, retries: int = 3) -> Match | None:
+    """
+    If necessary, automatically retries 2 times. Timeouts after 10 seconds.
+    Returns None if ANY error occurs.
+    """
 
     if retries <= 0:
         print(f"Limit exced for match {match_id}...")
@@ -88,6 +91,9 @@ def get_match_details(api_key: str, match_id: str, retries: int = 3) -> Match | 
 
 
 def get_hero_traits(unit: Unit) -> tuple[str, list[str]]:
+    """
+    Returns a tuple containing the heroes' names and their traits.
+    """
 
     hero_name = unit.character_id.replace("TFT17_", "").replace("TFT_", "")
     traits = CHAMPION_TRAITS.get(hero_name, ["No trait"])
@@ -95,7 +101,10 @@ def get_hero_traits(unit: Unit) -> tuple[str, list[str]]:
 
 
 def extract_team_comp(participant: Participant) -> dict[str, list[str]]:
-
+    """
+    For each player,
+    Returns a Dict with the hero's name and traits.
+    """
     team_comp = {}
     for unit in participant.units:
         hero_name, traits = get_hero_traits(unit)
@@ -104,6 +113,11 @@ def extract_team_comp(participant: Participant) -> dict[str, list[str]]:
 
 
 def analyze_unit_meta(matches: list[Match]) -> dict:
+    """
+    Selects the top 4 from each match and returns the hero names followed by their traits.
+    E.g. Leona: Vanguard
+    """
+
     matches_report = {}
 
     for i, match in enumerate(matches, start=1):
@@ -125,6 +139,7 @@ def analyze_unit_meta(matches: list[Match]) -> dict:
 
 
 def print_matches_player_traits(matches_report: dict) -> None:
+    """Function that prints the heroes' traits"""
 
     for match_key, placements in matches_report.items():
         print(f"\n{match_key}")
@@ -136,7 +151,7 @@ def print_matches_player_traits(matches_report: dict) -> None:
 
 
 def count_heroes_meta(matches: list[Match]) -> Counter:
-
+    """Function that counts the number of times a hero appears in the top 4."""
     heroes_list = []
     for match in matches:
         for participant in match.info.participants:
@@ -148,7 +163,7 @@ def count_heroes_meta(matches: list[Match]) -> Counter:
 
 
 def count_traits_meta(matches: list[Match]) -> Counter:
-
+    """Function that counts the number of times a hero appears in the top 4."""
     traits_list = []
     for match in matches:
         for participant in match.info.participants:
@@ -161,6 +176,7 @@ def count_traits_meta(matches: list[Match]) -> Counter:
 
 
 def fill_matches_db(puuids: list, api: str) -> list:
+    """Populates a list with match data. Uses `time.sleep` to avoid exceeding the request limit."""
     matches_db = []
     for i, puuid in enumerate(puuids, start=1):
         print(f"\n [{i} / {len(puuids)}] Mining match PUUID: {puuid[:10]}...")
@@ -176,6 +192,7 @@ def fill_matches_db(puuids: list, api: str) -> list:
 
 
 def match_info(matches: Match, idx: int) -> None:
+    """Function that prints the duration and number of players for each match."""
 
     duration_min = matches.info.game_length / 60
     total_players = len(matches.info.participants)
