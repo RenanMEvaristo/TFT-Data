@@ -12,6 +12,7 @@ dependencies = [
     "pydantic", # Adicionei aqui pois o Barão citou no Mypy
     "dotenv>=0.9.9",
     "httpx>=0.28.1",
+    "matplotlib>=3.11.1",
 ]
 
 [build-system]
