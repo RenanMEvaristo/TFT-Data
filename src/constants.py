@@ -1,5 +1,3 @@
-# Copyright (c) 2024 Renan Evaristo
-
 HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
 TOP_FOUR = 4
