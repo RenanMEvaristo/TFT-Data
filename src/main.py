@@ -1,5 +1,3 @@
-# Copyright (c) 2024 Renan Evaristo
-
 import os
 import time
 from collections import Counter
