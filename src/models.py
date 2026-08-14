@@ -1,4 +1,3 @@
-# Copyright (c) 2024 Renan Evaristo
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
