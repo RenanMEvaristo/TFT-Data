@@ -1,5 +1,3 @@
-# Copyright (c) 2024 Renan Evaristo
-
 import matplotlib
 
 matplotlib.use("TkAgg")
